@@ -5,13 +5,12 @@ const InvoiceLayout = () => {
   const [items, setItems] = useState([]);
   const [qty, setQty] = useState('');
   const [endRate, setEndRate] = useState('');
-  const [listening, setListening] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [pendingAdd, setPendingAdd] = useState(false); // Tracks if add item is pending
+  const [listening, setListening] = useState(false); // Track microphone status
+  const [transcript, setTranscript] = useState(''); // Hidden recognized text
+  const [pendingAdd, setPendingAdd] = useState(false);
 
   let recognition;
 
-  // Function to initialize speech recognition
   const initSpeechRecognition = () => {
     if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
       recognition = new window.webkitSpeechRecognition();
@@ -35,7 +34,6 @@ const InvoiceLayout = () => {
     }
   };
 
-  // Start or stop listening
   const toggleListening = () => {
     if (!recognition) initSpeechRecognition();
     if (recognition) {
@@ -50,7 +48,6 @@ const InvoiceLayout = () => {
     }
   };
 
-  // Process recognized speech commands
   const processCommand = (command) => {
     if (command.includes('quantity')) {
       const quantity = command.split('quantity')[1].trim().split(' ')[0];
@@ -61,22 +58,20 @@ const InvoiceLayout = () => {
       if (!isNaN(rate)) setEndRate(rate);
     }
     if (command.includes('add item') || command.includes('ad item')) {
-      setPendingAdd(true); // Set pending add to true
-      setTranscript(''); // Clear the transcript after preparing to add item
+      setPendingAdd(true);
+      setTranscript('');
       recognition.stop();
       setListening(false);
     }
   };
 
-  // Effect to trigger addItem when both qty and endRate are set and pendingAdd is true
   useEffect(() => {
     if (pendingAdd && qty && endRate) {
       addItem();
-      setPendingAdd(false); // Reset pending add
+      setPendingAdd(false);
     }
-  }, [qty, endRate, pendingAdd]); // Trigger whenever qty, endRate, or pendingAdd changes
+  }, [qty, endRate, pendingAdd]);
 
-  // Add Item to Table
   const addItem = () => {
     if (qty && endRate) {
       const unitRate = parseFloat(endRate) / 1.12;
@@ -95,13 +90,11 @@ const InvoiceLayout = () => {
     }
   };
 
-  // Delete Item from Table
   const deleteItem = (index) => {
     const updatedItems = items.filter((_, i) => i !== index);
     setItems(updatedItems);
   };
 
-  // Clear all contents
   const clearContents = () => {
     setItems([]);
     setQty('');
@@ -109,7 +102,6 @@ const InvoiceLayout = () => {
     setTranscript('');
   };
 
-  // Calculate Total Amount Before Tax
   const totalAmountBeforeTax = items.reduce((acc, item) => acc + parseFloat(item.rate), 0);
   const cgst = totalAmountBeforeTax * 0.06;
   const sgst = totalAmountBeforeTax * 0.06;
@@ -117,73 +109,89 @@ const InvoiceLayout = () => {
   const totalAmountAfterTax = Math.round(totalAmountBeforeTax + totalTax);
 
   return (
-    <div>
-      <h1>Invoice</h1>
+    <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+      <h1 style={{ fontSize: '2em', textAlign: 'center', fontWeight: 'bold' }}>Invoice</h1>
 
       {/* Item Input Form */}
-      <div style={{ marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px', alignItems: 'center' }}>
         <input
           type="number"
           placeholder="Qty"
           value={qty}
           onChange={(e) => setQty(e.target.value)}
-          style={{ padding: '8px', flex: '1 1 100px' }}
+          style={{ padding: '10px', flex: '1', fontSize: '1em' }}
         />
         <input
           type="number"
           placeholder="End Rate"
           value={endRate}
           onChange={(e) => setEndRate(e.target.value)}
-          style={{ padding: '8px', flex: '1 1 100px' }}
+          style={{ padding: '10px', flex: '1', fontSize: '1em' }}
         />
-        <button onClick={addItem} style={{ padding: '8px', flex: '1 1 auto' }}>Add Item</button>
-      </div>
-
-      {/* Microphone Button */}
-      <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <button onClick={toggleListening} style={{ padding: '10px 20px', cursor: 'pointer' }}>
-          {listening ? 'Stop Listening' : 'Click to Speak'}
+        <button onClick={addItem} style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', fontSize: '1em', cursor: 'pointer' }}>Add Item</button>
+        <button onClick={toggleListening} style={{
+          padding: '15px',
+          fontSize: '1em',
+          borderRadius: '50%',
+          backgroundColor: listening ? '#FF5722' : '#607D8B',
+          color: 'white',
+          border: 'none',
+          cursor: 'pointer',
+          transition: 'background-color 0.3s ease',
+          animation: listening ? 'pulse 1s infinite' : 'none'
+        }}>
+          🎤
         </button>
-        <div style={{ marginTop: '10px', fontSize: '14px', color: '#555' }}>
-          {listening ? 'Listening...' : 'Click the button to start voice commands'}
-        </div>
       </div>
 
-      {/* Display Transcript */}
+      <style>
+        {`
+          @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+          }
+        `}
+      </style>
+
+      {/* Hidden Transcript */}
       <textarea
         value={transcript}
         readOnly
         rows="4"
         placeholder="Recognized Speech"
-        style={{ width: '100%', marginTop: '20px' }}
+        style={{ display: 'none' }}
       />
 
       {/* Table */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
         <thead>
           <tr>
-            <th>Qty</th>
-            <th>End Rate</th>
-            <th>Unit Rate</th>
-            <th>Rate</th>
-            <th>Actions</th>
+            <th style={{ borderBottom: '2px solid #000', padding: '10px', textAlign: 'center' }}>Qty</th>
+            <th style={{ borderBottom: '2px solid #000', padding: '10px', textAlign: 'center' }}>End Rate</th>
+            <th style={{ borderBottom: '2px solid #000', padding: '10px', textAlign: 'center' }}>Unit Rate</th>
+            <th style={{ borderBottom: '2px solid #000', padding: '10px', textAlign: 'center' }}>Rate</th>
+            <th style={{ borderBottom: '2px solid #000', padding: '10px', textAlign: 'center' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {items.map((item, index) => (
             <tr key={index}>
-              <td>{item.qty}</td>
-              <td>₹{item.endRate}</td>
-              <td>₹{item.unitRate}</td>
-              <td>₹{item.rate}</td>
-              <td><button onClick={() => deleteItem(index)}>Delete</button></td>
+              <td style={{ padding: '10px', textAlign: 'center' }}>{item.qty}</td>
+              <td style={{ padding: '10px', textAlign: 'center' }}>₹{item.endRate}</td>
+              <td style={{ padding: '10px', textAlign: 'center' }}>₹{item.unitRate}</td>
+              <td style={{ padding: '10px', textAlign: 'center' }}>₹{item.rate}</td>
+              <td style={{ padding: '10px', textAlign: 'center' }}>
+                <button onClick={() => deleteItem(index)} style={{ backgroundColor: '#f44336', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' }}>Delete</button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
 
       {/* Summary Section */}
-      <div style={{ textAlign: 'right', marginTop: '20px', marginRight: '5%' }}>
+      <div style={{ textAlign: 'right', marginTop: '20px' }}>
+        <hr style={{ border: '1px solid #000', marginBottom: '10px' }} />
         <p><strong>Total Amount Before Tax:</strong> ₹{totalAmountBeforeTax.toFixed(2)}</p>
         <p><strong>CGST (6%):</strong> ₹{cgst.toFixed(2)}</p>
         <p><strong>SGST (6%):</strong> ₹{sgst.toFixed(2)}</p>
@@ -193,7 +201,7 @@ const InvoiceLayout = () => {
 
       {/* Clear Button */}
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <button onClick={clearContents} style={{ padding: '10px 20px', cursor: 'pointer' }}>Clear</button>
+        <button onClick={clearContents} style={{ padding: '10px 20px', backgroundColor: '#FF5722', color: 'white', border: 'none', borderRadius: '5px', fontSize: '1em', cursor: 'pointer' }}>Clear</button>
       </div>
     </div>
   );
