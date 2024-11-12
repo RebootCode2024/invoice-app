@@ -1,10 +1,80 @@
 // src/app/components/InvoiceLayout.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const InvoiceLayout = () => {
   const [items, setItems] = useState([]);
   const [qty, setQty] = useState('');
   const [endRate, setEndRate] = useState('');
+  const [listening, setListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [pendingAdd, setPendingAdd] = useState(false); // Tracks if add item is pending
+
+  let recognition;
+
+  // Function to initialize speech recognition
+  const initSpeechRecognition = () => {
+    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
+      recognition = new window.webkitSpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        const speechResult = event.results[event.results.length - 1][0].transcript.trim();
+        console.log("Speech recognized:", speechResult);
+        setTranscript((prev) => `${prev}\n${speechResult}`);
+        processCommand(speechResult.toLowerCase());
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech Recognition Error:', event.error);
+        setListening(false);
+      };
+    } else {
+      console.warn('Speech recognition is not supported in this browser.');
+    }
+  };
+
+  // Start or stop listening
+  const toggleListening = () => {
+    if (!recognition) initSpeechRecognition();
+    if (recognition) {
+      if (listening) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+      setListening(!listening);
+    } else {
+      console.warn("Speech recognition is not initialized or supported.");
+    }
+  };
+
+  // Process recognized speech commands
+  const processCommand = (command) => {
+    if (command.includes('quantity')) {
+      const quantity = command.split('quantity')[1].trim().split(' ')[0];
+      if (!isNaN(quantity)) setQty(quantity);
+    }
+    if (command.includes('rate')) {
+      const rate = command.split('rate')[1].trim().split(' ')[0];
+      if (!isNaN(rate)) setEndRate(rate);
+    }
+    if (command.includes('add item') || command.includes('ad item')) {
+      setPendingAdd(true); // Set pending add to true
+      setTranscript(''); // Clear the transcript after preparing to add item
+      recognition.stop();
+      setListening(false);
+    }
+  };
+
+  // Effect to trigger addItem when both qty and endRate are set and pendingAdd is true
+  useEffect(() => {
+    if (pendingAdd && qty && endRate) {
+      addItem();
+      setPendingAdd(false); // Reset pending add
+    }
+  }, [qty, endRate, pendingAdd]); // Trigger whenever qty, endRate, or pendingAdd changes
 
   // Add Item to Table
   const addItem = () => {
@@ -20,6 +90,8 @@ const InvoiceLayout = () => {
       setItems([...items, newItem]);
       setQty('');
       setEndRate('');
+    } else {
+      console.warn("Quantity or Rate missing. Please try again.");
     }
   };
 
@@ -34,19 +106,14 @@ const InvoiceLayout = () => {
     setItems([]);
     setQty('');
     setEndRate('');
+    setTranscript('');
   };
 
   // Calculate Total Amount Before Tax
   const totalAmountBeforeTax = items.reduce((acc, item) => acc + parseFloat(item.rate), 0);
-
-  // Calculate CGST and SGST (6% each) without rounding yet
   const cgst = totalAmountBeforeTax * 0.06;
   const sgst = totalAmountBeforeTax * 0.06;
-
-  // Calculate Total Tax by adding CGST and SGST
   const totalTax = cgst + sgst;
-
-  // Calculate Total Amount After Tax and round it to the nearest integer
   const totalAmountAfterTax = Math.round(totalAmountBeforeTax + totalTax);
 
   return (
@@ -72,27 +139,44 @@ const InvoiceLayout = () => {
         <button onClick={addItem} style={{ padding: '8px', flex: '1 1 auto' }}>Add Item</button>
       </div>
 
+      {/* Microphone Button */}
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <button onClick={toggleListening} style={{ padding: '10px 20px', cursor: 'pointer' }}>
+          {listening ? 'Stop Listening' : 'Click to Speak'}
+        </button>
+        <div style={{ marginTop: '10px', fontSize: '14px', color: '#555' }}>
+          {listening ? 'Listening...' : 'Click the button to start voice commands'}
+        </div>
+      </div>
+
+      {/* Display Transcript */}
+      <textarea
+        value={transcript}
+        readOnly
+        rows="4"
+        placeholder="Recognized Speech"
+        style={{ width: '100%', marginTop: '20px' }}
+      />
+
       {/* Table */}
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
         <thead>
           <tr>
-            <th style={{ borderBottom: '1px solid #000', padding: '8px' }}>Qty</th>
-            <th style={{ borderBottom: '1px solid #000', padding: '8px' }}>End Rate</th>
-            <th style={{ borderBottom: '1px solid #000', padding: '8px' }}>Unit Rate</th>
-            <th style={{ borderBottom: '1px solid #000', padding: '8px' }}>Rate</th>
-            <th style={{ borderBottom: '1px solid #000', padding: '8px' }}>Actions</th>
+            <th>Qty</th>
+            <th>End Rate</th>
+            <th>Unit Rate</th>
+            <th>Rate</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {items.map((item, index) => (
             <tr key={index}>
-              <td style={{ padding: '8px', textAlign: 'center' }}>{item.qty}</td>
-              <td style={{ padding: '8px', textAlign: 'center' }}>₹{item.endRate}</td>
-              <td style={{ padding: '8px', textAlign: 'center' }}>₹{item.unitRate}</td>
-              <td style={{ padding: '8px', textAlign: 'center' }}>₹{item.rate}</td>
-              <td style={{ padding: '8px', textAlign: 'center' }}>
-                <button onClick={() => deleteItem(index)}>Delete</button>
-              </td>
+              <td>{item.qty}</td>
+              <td>₹{item.endRate}</td>
+              <td>₹{item.unitRate}</td>
+              <td>₹{item.rate}</td>
+              <td><button onClick={() => deleteItem(index)}>Delete</button></td>
             </tr>
           ))}
         </tbody>
@@ -100,7 +184,6 @@ const InvoiceLayout = () => {
 
       {/* Summary Section */}
       <div style={{ textAlign: 'right', marginTop: '20px', marginRight: '5%' }}>
-        <hr style={{ border: '1px solid #000', marginBottom: '10px' }} />
         <p><strong>Total Amount Before Tax:</strong> ₹{totalAmountBeforeTax.toFixed(2)}</p>
         <p><strong>CGST (6%):</strong> ₹{cgst.toFixed(2)}</p>
         <p><strong>SGST (6%):</strong> ₹{sgst.toFixed(2)}</p>
@@ -110,9 +193,7 @@ const InvoiceLayout = () => {
 
       {/* Clear Button */}
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <button onClick={clearContents} style={{ padding: '10px 20px', backgroundColor: '#f44336', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          Clear
-        </button>
+        <button onClick={clearContents} style={{ padding: '10px 20px', cursor: 'pointer' }}>Clear</button>
       </div>
     </div>
   );
