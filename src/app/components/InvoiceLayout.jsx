@@ -1,5 +1,6 @@
 // src/app/components/InvoiceLayout.jsx
 import React, { useState, useEffect } from 'react';
+import Calculator from './Calculator';
 
 const InvoiceLayout = () => {
   const [items, setItems] = useState([]);
@@ -8,6 +9,7 @@ const InvoiceLayout = () => {
   const [listening, setListening] = useState(false); // Track microphone status
   const [transcript, setTranscript] = useState(''); // Hidden recognized text
   const [pendingAdd, setPendingAdd] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(false); // Toggle calculator
 
   let recognition;
 
@@ -108,6 +110,8 @@ const InvoiceLayout = () => {
   const totalTax = cgst + sgst;
   const totalAmountAfterTax = Math.round(totalAmountBeforeTax + totalTax);
 
+  const toggleCalculator = () => setShowCalculator(!showCalculator);
+
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
       <h1 style={{ fontSize: '2em', textAlign: 'center', fontWeight: 'bold' }}>Invoice</h1>
@@ -199,10 +203,13 @@ const InvoiceLayout = () => {
         <p><strong>Total Amount After Tax:</strong> ₹{totalAmountAfterTax}</p>
       </div>
 
-      {/* Clear Button */}
+      {/* Clear and Calculator Buttons */}
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <button onClick={clearContents} style={{ padding: '10px 20px', backgroundColor: '#FF5722', color: 'white', border: 'none', borderRadius: '5px', fontSize: '1em', cursor: 'pointer' }}>Clear</button>
+        <button onClick={clearContents} style={{ padding: '10px 20px', backgroundColor: '#FF5722', color: 'white', border: 'none', borderRadius: '5px', fontSize: '1em', cursor: 'pointer', marginRight: '10px' }}>Clear</button>
+        <button onClick={toggleCalculator} style={{ padding: '10px 20px', backgroundColor: '#607D8B', color: 'white', border: 'none', borderRadius: '5px', fontSize: '1em', cursor: 'pointer' }}>Calculator</button>
       </div>
+
+      {showCalculator && <Calculator onClose={toggleCalculator} />}
     </div>
   );
 };
