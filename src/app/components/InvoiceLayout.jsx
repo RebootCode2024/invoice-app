@@ -1,8 +1,9 @@
-// src/app/components/InvoiceLayout.jsx
 import React, { useState, useEffect } from 'react';
 import Calculator from './Calculator';
 
 const InvoiceLayout = () => {
+  const [customerName, setCustomerName] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
   const [items, setItems] = useState([]);
   const [qty, setQty] = useState('');
   const [endRate, setEndRate] = useState('');
@@ -116,6 +117,41 @@ const InvoiceLayout = () => {
     <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
       <h1 style={{ fontSize: '2em', textAlign: 'center', fontWeight: 'bold' }}>Invoice</h1>
 
+      {/* Customer Details Input */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            type="text"
+            placeholder="Customer Name"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            style={{ padding: '10px', flex: '1', fontSize: '1em' }}
+          />
+          <button
+            onClick={() => setCustomerName('')}
+            style={{ padding: '10px', backgroundColor: '#FF5722', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+          >
+            Clear
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            type="text"
+            placeholder="Contact Number"
+            value={contactNumber}
+            onChange={(e) => setContactNumber(e.target.value)}
+            style={{ padding: '10px', flex: '1', fontSize: '1em' }}
+          />
+          <button
+            onClick={() => setContactNumber('')}
+            style={{ padding: '10px', backgroundColor: '#FF5722', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
       {/* Item Input Form */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px', alignItems: 'center' }}>
         <input
@@ -157,15 +193,6 @@ const InvoiceLayout = () => {
           }
         `}
       </style>
-
-      {/* Hidden Transcript */}
-      <textarea
-        value={transcript}
-        readOnly
-        rows="4"
-        placeholder="Recognized Speech"
-        style={{ display: 'none' }}
-      />
 
       {/* Table */}
       <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
