@@ -1,16 +1,31 @@
+"use client";
 import React, { useState, useEffect } from 'react';
+import { useInvoice } from '../context/InvoiceContext';
 import Calculator from './Calculator';
 
 const InvoiceLayout = () => {
-  const [customerName, setCustomerName] = useState('');
-  const [contactNumber, setContactNumber] = useState('');
-  const [items, setItems] = useState([]);
+  const {
+    customerName,
+    setCustomerName,
+    contactNumber,
+    setContactNumber,
+    items,
+    addItem,
+    deleteItem,
+    clearItems, // Ensure clearItems is available from the context
+    totalAmountBeforeTax,
+    cgst,
+    sgst,
+    totalTax,
+    totalAmountAfterTax,
+  } = useInvoice();
+
   const [qty, setQty] = useState('');
   const [endRate, setEndRate] = useState('');
-  const [listening, setListening] = useState(false); // Track microphone status
-  const [transcript, setTranscript] = useState(''); // Hidden recognized text
+  const [listening, setListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
   const [pendingAdd, setPendingAdd] = useState(false);
-  const [showCalculator, setShowCalculator] = useState(false); // Toggle calculator
+  const [showCalculator, setShowCalculator] = useState(false);
 
   let recognition;
 
@@ -23,31 +38,19 @@ const InvoiceLayout = () => {
 
       recognition.onresult = (event) => {
         const speechResult = event.results[event.results.length - 1][0].transcript.trim();
-        console.log("Speech recognized:", speechResult);
         setTranscript((prev) => `${prev}\n${speechResult}`);
         processCommand(speechResult.toLowerCase());
       };
 
-      recognition.onerror = (event) => {
-        console.error('Speech Recognition Error:', event.error);
-        setListening(false);
-      };
-    } else {
-      console.warn('Speech recognition is not supported in this browser.');
+      recognition.onerror = () => setListening(false);
     }
   };
 
   const toggleListening = () => {
     if (!recognition) initSpeechRecognition();
     if (recognition) {
-      if (listening) {
-        recognition.stop();
-      } else {
-        recognition.start();
-      }
+      listening ? recognition.stop() : recognition.start();
       setListening(!listening);
-    } else {
-      console.warn("Speech recognition is not initialized or supported.");
     }
   };
 
@@ -60,7 +63,7 @@ const InvoiceLayout = () => {
       const rate = command.split('rate')[1].trim().split(' ')[0];
       if (!isNaN(rate)) setEndRate(rate);
     }
-    if (command.includes('add item') || command.includes('ad item')) {
+    if (command.includes('add item')) {
       setPendingAdd(true);
       setTranscript('');
       recognition.stop();
@@ -70,48 +73,20 @@ const InvoiceLayout = () => {
 
   useEffect(() => {
     if (pendingAdd && qty && endRate) {
-      addItem();
+      addItem(qty, endRate);
       setPendingAdd(false);
+      setQty(''); // Reset qty input
+      setEndRate(''); // Reset endRate input
     }
-  }, [qty, endRate, pendingAdd]);
-
-  const addItem = () => {
-    if (qty && endRate) {
-      const unitRate = parseFloat(endRate) / 1.12;
-      const rate = unitRate * parseFloat(qty);
-      const newItem = {
-        qty: parseFloat(qty),
-        endRate: parseFloat(endRate),
-        unitRate: unitRate.toFixed(2),
-        rate: rate.toFixed(2),
-      };
-      setItems([...items, newItem]);
-      setQty('');
-      setEndRate('');
-    } else {
-      console.warn("Quantity or Rate missing. Please try again.");
-    }
-  };
-
-  const deleteItem = (index) => {
-    const updatedItems = items.filter((_, i) => i !== index);
-    setItems(updatedItems);
-  };
-
-  const clearContents = () => {
-    setItems([]);
-    setQty('');
-    setEndRate('');
-    setTranscript('');
-  };
-
-  const totalAmountBeforeTax = items.reduce((acc, item) => acc + parseFloat(item.rate), 0);
-  const cgst = totalAmountBeforeTax * 0.06;
-  const sgst = totalAmountBeforeTax * 0.06;
-  const totalTax = cgst + sgst;
-  const totalAmountAfterTax = Math.round(totalAmountBeforeTax + totalTax);
+  }, [qty, endRate, pendingAdd, addItem]);
 
   const toggleCalculator = () => setShowCalculator(!showCalculator);
+
+  const handleClear = () => {
+    clearItems(); // Clear all items
+    setQty(''); // Reset qty input to placeholder
+    setEndRate(''); // Reset endRate input to placeholder
+  };
 
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
@@ -125,7 +100,7 @@ const InvoiceLayout = () => {
             placeholder="Customer Name"
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
-            style={{ padding: '10px', flex: '1', fontSize: '1em' }}
+            style={{ padding: '10px', flex: '1', fontSize: '1em', color: 'black' }}
           />
           <button
             onClick={() => setCustomerName('')}
@@ -141,7 +116,7 @@ const InvoiceLayout = () => {
             placeholder="Contact Number"
             value={contactNumber}
             onChange={(e) => setContactNumber(e.target.value)}
-            style={{ padding: '10px', flex: '1', fontSize: '1em' }}
+            style={{ padding: '10px', flex: '1', fontSize: '1em', color: 'black' }}
           />
           <button
             onClick={() => setContactNumber('')}
@@ -159,16 +134,16 @@ const InvoiceLayout = () => {
           placeholder="Qty"
           value={qty}
           onChange={(e) => setQty(e.target.value)}
-          style={{ padding: '10px', flex: '1', fontSize: '1em' }}
+          style={{ padding: '10px', flex: '1', fontSize: '1em', color: 'black' }}
         />
         <input
           type="number"
           placeholder="End Rate"
           value={endRate}
           onChange={(e) => setEndRate(e.target.value)}
-          style={{ padding: '10px', flex: '1', fontSize: '1em' }}
+          style={{ padding: '10px', flex: '1', fontSize: '1em', color: 'black' }}
         />
-        <button onClick={addItem} style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', fontSize: '1em', cursor: 'pointer' }}>Add Item</button>
+        <button onClick={() => { addItem(qty, endRate); setQty(''); setEndRate(''); }} style={{ padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', fontSize: '1em', cursor: 'pointer' }}>Add Item</button>
         <button onClick={toggleListening} style={{
           padding: '15px',
           fontSize: '1em',
@@ -223,16 +198,16 @@ const InvoiceLayout = () => {
       {/* Summary Section */}
       <div style={{ textAlign: 'right', marginTop: '20px' }}>
         <hr style={{ border: '1px solid #000', marginBottom: '10px' }} />
-        <p><strong>Total Amount Before Tax:</strong> ₹{totalAmountBeforeTax.toFixed(2)}</p>
-        <p><strong>CGST (6%):</strong> ₹{cgst.toFixed(2)}</p>
-        <p><strong>SGST (6%):</strong> ₹{sgst.toFixed(2)}</p>
-        <p><strong>Total Tax:</strong> ₹{totalTax.toFixed(2)}</p>
-        <p><strong>Total Amount After Tax:</strong> ₹{totalAmountAfterTax}</p>
+        <p><strong>Total Amount Before Tax:</strong> ₹{totalAmountBeforeTax?.toFixed(2) || '0.00'}</p>
+        <p><strong>CGST (6%):</strong> ₹{cgst?.toFixed(2) || '0.00'}</p>
+        <p><strong>SGST (6%):</strong> ₹{sgst?.toFixed(2) || '0.00'}</p>
+        <p><strong>Total Tax:</strong> ₹{totalTax?.toFixed(2) || '0.00'}</p>
+        <p><strong>Total Amount After Tax:</strong> ₹{totalAmountAfterTax || '0'}</p>
       </div>
 
       {/* Clear and Calculator Buttons */}
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <button onClick={clearContents} style={{ padding: '10px 20px', backgroundColor: '#FF5722', color: 'white', border: 'none', borderRadius: '5px', fontSize: '1em', cursor: 'pointer', marginRight: '10px' }}>Clear</button>
+        <button onClick={handleClear} style={{ padding: '10px 20px', backgroundColor: '#FF5722', color: 'white', border: 'none', borderRadius: '5px', fontSize: '1em', cursor: 'pointer', marginRight: '10px' }}>Clear</button>
         <button onClick={toggleCalculator} style={{ padding: '10px 20px', backgroundColor: '#607D8B', color: 'white', border: 'none', borderRadius: '5px', fontSize: '1em', cursor: 'pointer' }}>Calculator</button>
       </div>
 
