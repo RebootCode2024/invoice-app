@@ -1,6 +1,6 @@
 import localFont from "next/font/local";
 import "./globals.css";
-import { InvoiceProvider } from './context/InvoiceContext';
+import Providers from "./providers"; // Import the new providers wrapper
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -22,9 +22,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <InvoiceProvider>
-          {children}
-        </InvoiceProvider>
+        <Providers>{children}</Providers> {/* Wrap children in Providers */}
       </body>
     </html>
   );
