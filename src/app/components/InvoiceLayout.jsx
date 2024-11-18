@@ -94,7 +94,7 @@ const InvoiceLayout = () => {
   };
 
   const handleGenerateBill = () => {
-    const authorizedEmails = ["rebootcode2024@gmail.com", "DSBHOJWANI@gmail.com"]; // List of authorized emails
+    const authorizedEmails = ["rebootcode2024@gmail.com", "DSBHOJWANI@gmail.com","haranddev@gmail.com"]; // List of authorized emails
   
     if (authorizedEmails.includes(session?.user?.email)) {
       router.push("/bill"); // Navigate to the bill page if authorized
