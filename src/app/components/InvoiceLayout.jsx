@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation"; // Updated import
 import { useInvoice } from "../context/InvoiceContext";
+import { useSession } from "next-auth/react"; // Import for session data
 import Calculator from "./Calculator";
 
 const InvoiceLayout = () => {
   const router = useRouter();
+  const { data: session } = useSession(); // Get session data
   const {
     customerName,
     setCustomerName,
@@ -92,9 +94,15 @@ const InvoiceLayout = () => {
   };
 
   const handleGenerateBill = () => {
-    router.push("/bill"); // Navigate to the bill page
+    const authorizedEmails = ["rebootcode2024@gmail.com", "DSBHOJWANI@gmail.com"]; // List of authorized emails
+  
+    if (authorizedEmails.includes(session?.user?.email)) {
+      router.push("/bill"); // Navigate to the bill page if authorized
+    } else {
+      alert("You are not authorized"); // Alert for unauthorized users
+    }
   };
-
+  
   return (
     <div
       style={{
