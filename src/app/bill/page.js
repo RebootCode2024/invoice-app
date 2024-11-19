@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useInvoice } from "../context/InvoiceContext";
 
 const GenerateBill = () => {
@@ -14,8 +14,28 @@ const GenerateBill = () => {
     totalAmountAfterTax,
   } = useInvoice();
 
-  const todayDate = new Date().toLocaleDateString();
-  const currentTime = new Date().toLocaleTimeString();
+  // State to manage invoice number and date
+  const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [currentDateTime, setCurrentDateTime] = useState({ date: "", time: "" });
+
+  // Generate and set values only on the client
+  useEffect(() => {
+    // Generate random invoice number
+    const randomDigits = Math.floor(100000000 + Math.random() * 900000000);
+    setInvoiceNumber(`gfw-${randomDigits}`);
+
+    // Format date and time
+    const todayDate = new Date();
+    const formattedDate = `${todayDate
+      .getDate()
+      .toString()
+      .padStart(2, "0")}/${(todayDate.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}/${todayDate.getFullYear().toString().slice(-2)}`;
+    const currentTime = todayDate.toLocaleTimeString();
+
+    setCurrentDateTime({ date: formattedDate, time: currentTime });
+  }, []);
 
   return (
     <div
@@ -47,18 +67,20 @@ const GenerateBill = () => {
         style={{
           display: "flex",
           justifyContent: "space-between",
+          flexWrap: "wrap",
           marginBottom: "20px",
         }}
       >
-        <div>
+        <div style={{ flex: "1 1 45%", marginBottom: "10px" }}>
           <p>
-            <strong>Invoice No.:</strong> 276
+            <strong>Invoice No.:</strong> {invoiceNumber || "Generating..."}
           </p>
           <p>
-            <strong>Date:</strong> {todayDate} &nbsp; {currentTime}
+            <strong>Date:</strong> {currentDateTime.date || "Loading..."} &nbsp;{" "}
+            {currentDateTime.time || "Loading..."}
           </p>
         </div>
-        <div>
+        <div style={{ flex: "1 1 45%", marginBottom: "10px" }}>
           <p>
             <strong>Name:</strong> {customerName || "N/A"}
           </p>
@@ -74,6 +96,7 @@ const GenerateBill = () => {
           width: "100%",
           borderCollapse: "collapse",
           marginBottom: "20px",
+          fontSize: "0.9em",
         }}
       >
         <thead>
@@ -93,7 +116,7 @@ const GenerateBill = () => {
                 <td style={tableCellStyle}>{item.qty}</td>
                 <td style={tableCellStyle}>{item.productName || "Chappal"}</td>
                 <td style={tableCellStyle}>6402</td>
-                <td style={tableCellStyle}>₹{item.endRate}</td>
+                <td style={tableCellStyle}>₹{(item.endRate / 1.12).toFixed(2)}</td>
                 <td style={tableCellStyle}>12%</td>
                 <td style={tableCellStyle}>₹{item.rate}</td>
               </tr>
@@ -153,6 +176,7 @@ const GenerateBill = () => {
   );
 };
 
+// Table Styles
 const tableHeaderStyle = {
   borderBottom: "2px solid black",
   padding: "10px",
