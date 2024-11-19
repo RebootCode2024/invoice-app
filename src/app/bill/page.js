@@ -14,17 +14,13 @@ const GenerateBill = () => {
     totalAmountAfterTax,
   } = useInvoice();
 
-  // State to manage invoice number and date
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [currentDateTime, setCurrentDateTime] = useState({ date: "", time: "" });
 
-  // Generate and set values only on the client
   useEffect(() => {
-    // Generate random invoice number
     const randomDigits = Math.floor(100000000 + Math.random() * 900000000);
     setInvoiceNumber(`gfw-${randomDigits}`);
 
-    // Format date and time
     const todayDate = new Date();
     const formattedDate = `${todayDate
       .getDate()
@@ -38,49 +34,30 @@ const GenerateBill = () => {
   }, []);
 
   return (
-    <div
-      style={{
-        fontFamily: "Arial, sans-serif",
-        padding: "20px",
-        maxWidth: "800px",
-        margin: "20px auto",
-        backgroundColor: "white",
-        color: "black",
-        border: "1px solid #ddd",
-        borderRadius: "10px",
-        boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-      }}
-    >
+    <div style={styles.container}>
       {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: "20px" }}>
-        <h1 style={{ margin: "0", fontSize: "1.8em" }}>GEETA FOOT WEAR</h1>
-        <p style={{ margin: "5px 0" }}>
+      <div style={styles.header}>
+        <h1 style={styles.title}>GEETA FOOT WEAR</h1>
+        <p style={styles.subtitle}>
           A-1, Arif Chamber-1, Kapoorthala Aliganj, Lucknow-226021
         </p>
-        <p style={{ margin: "5px 0" }}>
+        <p style={styles.subtitle}>
           GSTIN: 09AGNPB2973M1ZU &nbsp;|&nbsp; Ph: +91-9839277778
         </p>
       </div>
 
       {/* Invoice Details */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          marginBottom: "20px",
-        }}
-      >
-        <div style={{ flex: "1 1 45%", marginBottom: "10px" }}>
+      <div style={styles.detailsContainer}>
+        <div>
           <p>
             <strong>Invoice No.:</strong> {invoiceNumber || "Generating..."}
           </p>
           <p>
-            <strong>Date:</strong> {currentDateTime.date || "Loading..."} &nbsp;{" "}
+            <strong>Date:</strong> {currentDateTime.date || "Loading..."} &nbsp;
             {currentDateTime.time || "Loading..."}
           </p>
         </div>
-        <div style={{ flex: "1 1 45%", marginBottom: "10px" }}>
+        <div>
           <p>
             <strong>Name:</strong> {customerName || "N/A"}
           </p>
@@ -90,49 +67,44 @@ const GenerateBill = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          marginBottom: "20px",
-          fontSize: "0.9em",
-        }}
-      >
-        <thead>
-          <tr>
-            <th style={tableHeaderStyle}>Qty</th>
-            <th style={tableHeaderStyle}>Name of Product</th>
-            <th style={tableHeaderStyle}>HSN</th>
-            <th style={tableHeaderStyle}>Rate</th>
-            <th style={tableHeaderStyle}>GST</th>
-            <th style={tableHeaderStyle}>Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.length > 0 ? (
-            items.map((item, index) => (
-              <tr key={index}>
-                <td style={tableCellStyle}>{item.qty}</td>
-                <td style={tableCellStyle}>{item.productName || "Chappal"}</td>
-                <td style={tableCellStyle}>6402</td>
-                <td style={tableCellStyle}>₹{(item.endRate / 1.12).toFixed(2)}</td>
-                <td style={tableCellStyle}>12%</td>
-                <td style={tableCellStyle}>₹{item.rate}</td>
-              </tr>
-            ))
-          ) : (
+      {/* Responsive Table */}
+      <div style={styles.tableContainer}>
+        <table style={styles.table}>
+          <thead>
             <tr>
-              <td style={tableCellStyle} colSpan="6">
-                No items added
-              </td>
+              <th style={styles.th}>Qty</th>
+              <th style={styles.th}>Name of Product</th>
+              <th style={styles.th}>HSN</th>
+              <th style={styles.th}>Rate</th>
+              <th style={styles.th}>GST</th>
+              <th style={styles.th}>Amount</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {items.length > 0 ? (
+              items.map((item, index) => (
+                <tr key={index}>
+                  <td style={styles.td}>{item.qty}</td>
+                  <td style={styles.td}>{item.productName || "Chappal"}</td>
+                  <td style={styles.td}>6402</td>
+                  <td style={styles.td}>₹{(item.endRate / 1.12).toFixed(2)}</td>
+                  <td style={styles.td}>12%</td>
+                  <td style={styles.td}>₹{item.rate}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td style={styles.td} colSpan="6">
+                  No items added
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Summary Section */}
-      <div style={{ textAlign: "right", marginBottom: "20px" }}>
+      <div style={styles.summary}>
         <p>
           <strong>Total Amount Before Tax:</strong> ₹
           {totalAmountBeforeTax?.toFixed(2) || "0.00"}
@@ -153,7 +125,7 @@ const GenerateBill = () => {
       </div>
 
       {/* Terms and Conditions */}
-      <div style={{ marginTop: "20px", fontSize: "0.9em", color: "#555" }}>
+      <div style={styles.terms}>
         <p>Terms & Conditions:</p>
         <ul>
           <li>No Guarantee, No Claim</li>
@@ -162,13 +134,13 @@ const GenerateBill = () => {
           <li>Change only within a Week</li>
           <li>All Subject Disputes in Lucknow Jurisdiction</li>
         </ul>
-        <p style={{ textAlign: "center", marginTop: "10px" }}>
+        <p style={styles.centerText}>
           Certified that the particulars given above are true and correct.
         </p>
-        <p style={{ textAlign: "center", fontWeight: "bold" }}>
+        <p style={{ ...styles.centerText, fontWeight: "bold" }}>
           For GEETA FOOT WEAR
         </p>
-        <p style={{ textAlign: "center", fontStyle: "italic" }}>
+        <p style={{ ...styles.centerText, fontStyle: "italic" }}>
           (Authorised Signatory)
         </p>
       </div>
@@ -176,19 +148,71 @@ const GenerateBill = () => {
   );
 };
 
-// Table Styles
-const tableHeaderStyle = {
-  borderBottom: "2px solid black",
-  padding: "10px",
-  textAlign: "left",
-  backgroundColor: "#f5f5f5",
-  fontWeight: "bold",
-};
-
-const tableCellStyle = {
-  borderBottom: "1px solid #ddd",
-  padding: "10px",
-  textAlign: "left",
+// Styles
+const styles = {
+  container: {
+    fontFamily: "Arial, sans-serif",
+    padding: "20px",
+    margin: "20px auto",
+    backgroundColor: "white",
+    color: "black",
+    maxWidth: "95%",
+    border: "1px solid #ddd",
+    borderRadius: "10px",
+    boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+  },
+  header: {
+    textAlign: "center",
+    marginBottom: "20px",
+  },
+  title: {
+    margin: "0",
+    fontSize: "1.8em",
+  },
+  subtitle: {
+    margin: "5px 0",
+    fontSize: "0.9em",
+  },
+  detailsContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    marginBottom: "20px",
+  },
+  tableContainer: {
+    overflowX: "auto",
+    marginBottom: "20px",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    fontSize: "0.8em",
+  },
+  th: {
+    borderBottom: "2px solid black",
+    padding: "10px",
+    textAlign: "left",
+    backgroundColor: "#f5f5f5",
+    fontWeight: "bold",
+  },
+  td: {
+    borderBottom: "1px solid #ddd",
+    padding: "10px",
+    textAlign: "left",
+  },
+  summary: {
+    textAlign: "right",
+    marginBottom: "20px",
+    fontSize: "0.9em",
+  },
+  terms: {
+    marginTop: "20px",
+    fontSize: "0.8em",
+    color: "#555",
+  },
+  centerText: {
+    textAlign: "center",
+  },
 };
 
 export default GenerateBill;
