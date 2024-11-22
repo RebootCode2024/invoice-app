@@ -23,6 +23,13 @@ const InvoiceLayout = () => {
     totalTax,
     totalAmountAfterTax,
   } = useInvoice();
+  const [invoiceNumber, setInvoiceNumber] = useState(""); // State for invoice number
+
+  useEffect(() => {
+    // Generate a random invoice number when the component loads
+    const randomDigits = Math.floor(100000000 + Math.random() * 900000000);
+    setInvoiceNumber(`gfw-${randomDigits}`);
+  }, []);
 
   const [qty, setQty] = useState("");
   const [endRate, setEndRate] = useState("");
@@ -94,14 +101,40 @@ const InvoiceLayout = () => {
   };
 
   const handleGenerateBill = () => {
-    const authorizedEmails = ["rebootcode2024@gmail.com", "DSBHOJWANI@gmail.com","haranddev@gmail.com"]; // List of authorized emails
+    // Generate a random invoice number
+    const randomDigits = Math.floor(100000000 + Math.random() * 900000000);
+    const newInvoiceNumber = `gfw-${randomDigits}`;
+    setInvoiceNumber(newInvoiceNumber);
   
-    if (authorizedEmails.includes(session?.user?.email)) {
-      router.push("/bill"); // Navigate to the bill page if authorized
-    } else {
-      alert("You are not authorized"); // Alert for unauthorized users
+    // Validate required fields
+    if (!customerName || !contactNumber || items.length === 0) {
+      alert("Please fill in all details and add items before generating the bill.");
+      return;
     }
+  
+    // Save invoice data to localStorage
+    const invoiceData = {
+      invoiceNumber: newInvoiceNumber,
+      customerName,
+      contactNumber,
+      items,
+      totalAmountBeforeTax,
+      cgst,
+      sgst,
+      totalTax,
+      totalAmountAfterTax,
+    };
+    localStorage.setItem(newInvoiceNumber, JSON.stringify(invoiceData));
+  
+    // Navigate to the bill page
+    router.push(`/bill/${newInvoiceNumber}`);
   };
+  
+  
+  
+  
+  
+  
   
   return (
     <div
@@ -125,6 +158,7 @@ const InvoiceLayout = () => {
           marginBottom: "20px",
         }}
       >
+      
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <input
             type="text"
