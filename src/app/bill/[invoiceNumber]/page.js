@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useSearchParams, useParams } from "next/navigation";
+import { useSearchParams, useParams, useRouter } from "next/navigation";
 
 const InvoicePage = () => {
   const searchParams = useSearchParams();
   const { invoiceNumber } = useParams(); // Get the dynamic invoice number from the URL
+  const router = useRouter(); // For navigation
   const [invoice, setInvoice] = useState(null);
 
   useEffect(() => {
@@ -25,25 +26,46 @@ const InvoicePage = () => {
     }
 
     try {
-      const response = await fetch("/api/sendMessage", {
+      // Step 1: Save the invoice in the database
+      const saveResponse = await fetch("/api/invoices", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(invoice), // Send the entire invoice object
+      });
+
+      if (!saveResponse.ok) {
+        throw new Error("Failed to save the invoice in the database.");
+      }
+
+      const saveData = await saveResponse.json();
+      alert("Invoice saved successfully!");
+
+      // Step 2: Send the invoice link to the customer
+      const sendMessageResponse = await fetch("/api/sendMessage", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           to: invoice.contactNumber,
-          message: `Hello ${invoice.customerName}, your invoice is ready. View it here: http://yourdomain.com/bill/${invoice.invoiceNumber}`,
+          message: `Hello ${invoice.customerName}, your invoice is ready. View it here: https://geeta-footwear.vercel.app/bill/${invoice.invoiceNumber}. Thank you for buying from Geeta Footwear!`,
         }),
       });
 
-      if (response.ok) {
-        alert("Invoice link sent to the customer successfully!");
-      } else {
-        alert("Failed to send the invoice link to the customer.");
+      if (!sendMessageResponse.ok) {
+        throw new Error("Failed to send the message to the customer.");
       }
+
+      const sendMessageData = await sendMessageResponse.json();
+      alert("Invoice link sent to the customer successfully!");
+
+      // Step 3: Redirect the user back to the invoice list page
+      router.push("/invoice");
     } catch (error) {
-      console.error("Error sending invoice link:", error);
-      alert("An error occurred while sending the invoice link.");
+      console.error("Error:", error);
+      alert("An error occurred: " + error.message);
     }
   };
 
@@ -183,7 +205,7 @@ const InvoicePage = () => {
             cursor: "pointer",
           }}
         >
-          Send to Customer
+          Save & Send
         </button>
       </div>
     </div>
