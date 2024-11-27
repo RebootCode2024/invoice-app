@@ -43,6 +43,7 @@ const InvoicePage = () => {
       alert("Invoice saved successfully!");
 
       // Step 2: Send the invoice link to the customer
+      const customerLink = `https://geeta-footwear.vercel.app/customer/${invoice.invoiceNumber}`;
       const sendMessageResponse = await fetch("/api/sendMessage", {
         method: "POST",
         headers: {
@@ -50,7 +51,7 @@ const InvoicePage = () => {
         },
         body: JSON.stringify({
           to: invoice.contactNumber,
-          message: `Hello ${invoice.customerName}, your invoice is ready. View it here: https://geeta-footwear.vercel.app/bill/${invoice.invoiceNumber}. Thank you for buying from Geeta Footwear!`,
+          message: `Hello ${invoice.customerName}, your invoice is ready. View it here: ${customerLink}. Thank you for buying from Geeta Footwear!`,
         }),
       });
 
