@@ -34,8 +34,15 @@ const Navbar = () => {
       </div>
 
       {/* Center Section */}
-      <div style={{ fontSize: "1.5em", fontWeight: "bold", textAlign: "center" }}>
-        Geeta Footwear
+      <div style={{ textAlign: "center" }}>
+        <img
+          src="/logo.png"
+          alt="Geeta Footwear Logo"
+          style={{
+            height: "40px", // Adjust the size of the logo as needed
+            objectFit: "contain",
+          }}
+        />
       </div>
 
       {/* Right Section: Profile */}
