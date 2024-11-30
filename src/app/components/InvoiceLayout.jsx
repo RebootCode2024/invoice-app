@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"; // Updated import
 import { useInvoice } from "../context/InvoiceContext";
 import { useSession } from "next-auth/react"; // Import for session data
 import Calculator from "./Calculator";
+import DateDisplay from "./DateDisplay"; // Import the DateDisplay component
 
 const InvoiceLayout = () => {
   const router = useRouter();
@@ -148,6 +149,8 @@ const InvoiceLayout = () => {
       <h1 style={{ fontSize: "2em", textAlign: "center", fontWeight: "bold" }}>
         Invoice
       </h1>
+      <DateDisplay />
+
 
       {/* Customer Details Input */}
       <div
