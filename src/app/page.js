@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useSession, signIn } from "next-auth/react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { useEffect } from "react";
 
 export default function Home() {
@@ -9,11 +9,26 @@ export default function Home() {
   const { data: session, status } = useSession(); // Check user session
 
   useEffect(() => {
-    // Redirect to dashboard if logged in
+    // List of allowed emails
+    const allowedEmails = [
+      "rebootcode2024@gmail.com",
+      "shubhamkashyap05511@gmail.com",
+      "haranddev@gmail.com",
+      "DSBHOJWANI@gmail.com"
+    ];
+
+    // Check if the user is authenticated
     if (status === "authenticated") {
-      router.push("/dashboard");
+      if (session.user.email && allowedEmails.includes(session.user.email)) {
+        // Redirect to dashboard if the email is authorized
+        router.push("/dashboard");
+      } else {
+        // Alert and sign out if the email is not authorized
+        alert("You are not authorized to access this application.");
+        signOut();
+      }
     }
-  }, [status, router]);
+  }, [status, session, router]);
 
   const handleSignIn = () => {
     if (status === "unauthenticated") {

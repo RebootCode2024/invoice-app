@@ -2,12 +2,27 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const InvoicePage = () => {
+  const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const { invoiceNumber } = useParams(); // Get the dynamic invoice number from the URL
   const router = useRouter(); // For navigation
   const [invoice, setInvoice] = useState(null);
+
+  const authorizedEmails = ["rebootcode2024@gmail.com"]; // Add authorized emails here
+
+  useEffect(() => {
+    // Check if the logged-in user's email is authorized
+    if (status === "authenticated") {
+      if (!authorizedEmails.includes(session?.user?.email)) {
+        alert("You are not authorized. Contact Harsh Bhojwani");
+        router.push("/"); // Redirect unauthorized users to the home page
+        return;
+      }
+    }
+  }, [status, session, router]);
 
   useEffect(() => {
     // Retrieve data from localStorage using invoice number
