@@ -10,14 +10,17 @@ export const InvoiceProvider = ({ children }) => {
   const [items, setItems] = useState([]);
 
   const addItem = (qty, endRate) => {
-    const unitRate = parseFloat(endRate) / 1.12;
+    // ✅ Updated: 5% GST removal → divide by 1.05
+    const unitRate = parseFloat(endRate) / 1.05;
     const rate = unitRate * parseFloat(qty);
+
     const newItem = {
       qty: parseFloat(qty),
       endRate: parseFloat(endRate),
       unitRate: unitRate.toFixed(2),
       rate: rate.toFixed(2),
     };
+
     setItems([...items, newItem]);
   };
 
@@ -29,9 +32,15 @@ export const InvoiceProvider = ({ children }) => {
     setItems([]);
   };
 
-  const totalAmountBeforeTax = items.reduce((acc, item) => acc + parseFloat(item.rate), 0);
-  const cgst = totalAmountBeforeTax * 0.06;
-  const sgst = totalAmountBeforeTax * 0.06;
+  const totalAmountBeforeTax = items.reduce(
+    (acc, item) => acc + parseFloat(item.rate),
+    0
+  );
+
+  // ✅ Updated: CGST 2.5% + SGST 2.5%
+  const cgst = totalAmountBeforeTax * 0.025;
+  const sgst = totalAmountBeforeTax * 0.025;
+
   const totalTax = cgst + sgst;
   const totalAmountAfterTax = Math.round(totalAmountBeforeTax + totalTax);
 
