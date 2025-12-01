@@ -118,7 +118,7 @@ const GenerateBill = () => {
                   <td style={styles.td}>{item.productName || "Chappal"}</td>
                   <td style={styles.td}>6402</td>
                   <td style={styles.td}>₹{(item.endRate / 1.05).toFixed(2)}</td>
-                  <td style={styles.td}>12%</td>
+                  <td style={styles.td}>5%</td>
                   <td style={styles.td}>₹{item.rate}</td>
                 </tr>
               ))
@@ -140,10 +140,10 @@ const GenerateBill = () => {
           {totalAmountBeforeTax?.toFixed(2) || "0.00"}
         </p>
         <p>
-          <strong>CGST (6%):</strong> ₹{cgst?.toFixed(2) || "0.00"}
+          <strong>CGST (2.5%):</strong> ₹{cgst?.toFixed(2) || "0.00"}
         </p>
         <p>
-          <strong>SGST (6%):</strong> ₹{sgst?.toFixed(2) || "0.00"}
+          <strong>SGST (2.5%):</strong> ₹{sgst?.toFixed(2) || "0.00"}
         </p>
         <p>
           <strong>Total Tax:</strong> ₹{totalTax?.toFixed(2) || "0.00"}
