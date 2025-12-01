@@ -117,7 +117,7 @@ const GenerateBill = () => {
                   <td style={styles.td}>{item.qty}</td>
                   <td style={styles.td}>{item.productName || "Chappal"}</td>
                   <td style={styles.td}>6402</td>
-                  <td style={styles.td}>₹{(item.endRate / 1.12).toFixed(2)}</td>
+                  <td style={styles.td}>₹{(item.endRate / 1.05).toFixed(2)}</td>
                   <td style={styles.td}>12%</td>
                   <td style={styles.td}>₹{item.rate}</td>
                 </tr>
